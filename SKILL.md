@@ -1,8 +1,7 @@
 ---
 name: upkuajing-company-people-search
 description: 通过跨境魔方开放平台查询企业工商信息和人物数据。支持：搜索全球公司（按产品、行业、国家、规模筛选）；搜索关键人物（按职位、公司、学校筛选）；获取详情（工商信息、教育经历、工作履历）；获取联系方式（邮箱、电话、WhatsApp、社交媒体、网站）。适用场景：外贸客户开发、背景调查、商务谈判准备、人才寻访、竞品分析。
-homepage: https://www.upkuajing.com
-metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
+metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
 ---
 
 # 跨境魔方企业与人物搜索
@@ -12,6 +11,7 @@ metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKU
 ## 概述
 
 本技能通过五个脚本提供对跨境魔方全球企业库和人物数据的访问：两种列表搜索（公司、人物）和三个增强接口（公司详情、人物详情、联系方式）。
+通过`auth.py`脚本提供 API密钥生成、充值；
 
 ## 脚本运行
 
@@ -60,23 +60,18 @@ metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKU
   - `--bus_type`: 1=公司，2=人物
 
 ## API密钥与充值
-
-使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中：
+使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中;
 ```bash
-export UPKUAJING_API_KEY=your_api_key_here
-```
-
-## API密钥与充值
-使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中：
-```bash
+echo $UPKUAJING_API_KEY
+cat ./.env
 export UPKUAJING_API_KEY=your_api_key_here
 ```
 ### **未设置API密钥**
+请先检查`./.env`文件是否有UPKUAJING_API_KEY;
 如果未设置UPKUAJING_API_KEY API密钥，请提示并让用户选择：
 1. 用户有，由用户提供(让用户设置到环境变量)
-2. 用户没有，你可使用接口进行申请（`auth.py --new_key`）申请到新密钥后，需告知用户妥善保存
+2. 用户没有，你可使用接口进行申请（`auth.py --new_key`），申请到新密钥后，需告知用户妥善保存
 等待用户选择；
-
 
 ### **账户充值**
 如果调用接口响应账户余额不足时，需说明并引导用户进行账户充值：
@@ -99,7 +94,6 @@ export UPKUAJING_API_KEY=your_api_key_here
 
 
 ## 工作流程
-
 根据用户意图选择合适的API。
 
 ### 决策指南
@@ -168,7 +162,9 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
 ### 处理结果
 
 3. **谨慎处理jsonl文件**：对数据量大的查询，注意文件大小
-4. **逐步丰富信息**：仅在需要时调用增强接口
+4. **逐步丰富信息**：仅在需要时调用详情/联系接口
+   - 两个列表接口返回的公司ID都可以用于两个详情接口
+   - 如果用户只需要少数公司，不要为所有公司获取详情
 
 ## 注意事项
 - 人物搜索用 hid，公司搜索用 pid，注意区分
@@ -178,4 +174,4 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
 - 产品名称、行业名称需要使用**英文**
 - 搜索数量会影响接口的响应时间，建议设置 timeout:120
 - **禁止输出技术参数格式**：不要在回复中展示代码样式的参数，应将其转换为自然语言
-- **绝对不要**估算或猜测每次调用的费用金额、可用次数，各接口收费价格不一致，以[详细价格说明]为准
+- **不要**估算、猜测每次调用的费用，如有需要，使用`auth.py --account_info` 获取余额
