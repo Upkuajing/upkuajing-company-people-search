@@ -5,25 +5,25 @@
 """
 import argparse
 import sys
-from common import make_request, print_json_output
+from common import make_request, print_json_output, cover_fee_info
 
 
-def get_contact(bus_id: str, bus_type: int) -> dict:
+def get_contact(bus_ids: list, bus_type: int) -> dict:
     """
     获取公司或人物的联系方式。
 
     Args:
-        bus_id: 业务ID（公司ID或人物ID）
+        bus_ids: 业务ID列表（公司ID或人物ID）
         bus_type: 业务类型（1=公司，2=人物）
 
     Returns:
         包含联系方式的API响应
     """
     params = {
-        'bus_id': bus_id,
+        'bus_ids': bus_ids,
         'bus_type': bus_type
     }
-    response = make_request('/search/contact', params)
+    response = make_request('/search/contact/batch', params)
     return response
 
 
@@ -32,9 +32,10 @@ def main():
         description='从跨境魔方开放平台获取联系方式'
     )
     parser.add_argument(
-        '--bus_id',
+        '--bus_ids',
+        nargs='+',
         required=True,
-        help='公司ID或人物ID'
+        help='公司ID或人物ID列表（空格分隔）'
     )
     parser.add_argument(
         '--bus_type',
@@ -47,14 +48,17 @@ def main():
     args = parser.parse_args()
 
     # 获取联系方式
-    response = get_contact(args.bus_id, args.bus_type)
+    bus_ids = args.bus_ids
+    if len(bus_ids) > 20:
+        print(f"错误：每次最多处理20条数据", file=sys.stderr)
+        sys.exit(1)
+
+    response = get_contact(bus_ids, args.bus_type)
 
     # 从响应中提取数据
     if response.get('code') == 0:
         data = response.get('data', {})
-        # 提取费用信息 金额单位 分钱
-        api_cost = response.get('fee', {}).get("apiCost", 0)
-        print_json_output({"data": data, "apiCost": f"{api_cost}分钱"})
+        print_json_output({"data": data, "fee": cover_fee_info(response.get('fee', {}))})
     else:
         print(f"错误：{response.get('msg', '未知错误')}", file=sys.stderr)
         sys.exit(1)

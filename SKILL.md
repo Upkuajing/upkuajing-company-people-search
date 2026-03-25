@@ -43,21 +43,21 @@ metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{
 
 ### 三个增强接口
 
-在获取到公司或人物列表后，如有必要，可通过以下接口获取信息增强：
+在获取到公司或人物列表后，如有必要，可通过以下接口获取信息增强；
 
-**公司详情** (`company_details.py --pid *`)
+**公司详情** (`company_details.py --pids *`)
 - 获取公司工商信息（不包括联系方式）
-- **参数**：`--pid` 公司ID（从列表搜索获取）
+- **参数**：`--pids` 公司ID列表（空格分隔，从列表搜索获取），一次最多20个
 
-**人物详情** (`human_details.py --hid *`)
+**人物详情** (`human_details.py --hids *`)
 - 获取人物详细信息（教育经历、工作履历等）
-- **参数**：`--hid` 人物ID（从列表搜索获取）
+- **参数**：`--hids` 人物ID列表（空格分隔，从列表搜索获取），一次最多20个
 
-**联系方式** (`get_contact.py --bus_id * --bus_type *`)
+**联系方式** (`get_contact.py --bus_type * --bus_ids *`)
 - 获取联系方式（邮箱、电话、WhatsApp、社媒、网站）
 - **参数**：
-  - `--bus_id`: 公司ID或人物ID
   - `--bus_type`: 1=公司，2=人物
+  - `--bus_ids`: 公司ID或人物ID 列表（空格分隔，从列表搜索获取），一次最多20个
 
 ## API密钥与充值
 使用此技能需要API密钥。API密钥保存在 `~/.upkuajing/.env` 文件中：
@@ -85,14 +85,29 @@ UPKUAJING_API_KEY=your_api_key_here
   
 ## 费用
 
-**所有API调用都会产生费用** API调用按请求次数计费。
+**所有API调用都会产生费用**，不同接口计费方式不同。
 **最新价格信息**：用户可访问 [详细价格说明](https://www.upkuajing.com/web/openapi/price.html)
 
-在进行多次API调用之前，请告知用户预计费用并获得确认。
-**确认规则：只要 query_count > 20，无论请求多少条，执行前必须：**
-1. 计算所需调用次数：`ceil(query_count / 20)` 次
-2. 告知用户预计消耗次数
-3. 等待用户确认后再执行脚本
+### 列表搜索计费规则
+
+按**调用次数**计费，每次返回最多20条记录：
+- 调用次数：`ceil(query_count / 20)` 次
+- **只要 query_count > 20，执行前必须：**
+  1. 告知用户预计调用次数
+  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+
+### 增强接口计费规则
+
+按**传入的ID数量**计费，每次最多可以传入20个ID：
+- 传入1个ID = 计费1次
+- 传入20个ID = 计费20次（单次上限）
+- **批量获取前必须：**
+  1. 告知用户传入ID数量及对应费用次数
+  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+
+### 费用确认原则
+
+**任何会产生费用的操作，都必须先告知、等待用户明确确认，不得在告知的同一条消息中直接执行。**
 
 
 ## 工作流程
@@ -107,7 +122,7 @@ UPKUAJING_API_KEY=your_api_key_here
 | "找XX公司的CEO/CTO" | 人物列表 |
 | "找采购XXX的客户" | 公司列表 |
 | "获取人物履历" | 人物详情 |
-| "获取联系方式" | 联系方式 |
+| "获取公司联系方式" | 联系方式 bus_type=1 |
 
 ## 使用示例
 
@@ -144,9 +159,9 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
 
 ## 错误处理
 
-- **API密钥无效/不存在**：检查`UPKUAJING_API_KEY`
+- **API密钥无效/不存在**：检查 `~/.upkuajing/.env` 文件中的 `UPKUAJING_API_KEY`
 - **余额不足**：引导用户充值
-- **参数无效**：检查参数名称和值
+- **参数无效**：**必须先查看 references/ 目录下的对应 API 文档**，从文档中获取正确的参数名称和格式，不要猜测
 
 ## 最佳实践
 
@@ -156,7 +171,13 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
    - 找公司？ → 使用**公司列表搜索**
    - 找人？ → 使用**人物列表搜索**
 
-2. **优化查询参数**：
+2. **查看API文档**：
+   - **执行列表查询前，必须先查看对应的 API 参考文档**
+   - 公司列表：查看 [references/company-list-api.md](references/company-list-api.md)
+   - 人物列表：查看 [references/human-list-api.md](references/human-list-api.md)
+   - 不要猜测参数名称，从文档中获取准确的参数名称和格式
+
+3. **优化查询参数**：
    - 使用 `products` 参数精确筛选产品，需翻译为英文
    - 使用 `existEmail=1` 或 `existPhone=1` 筛选有联系方式的实体
    - 使用 `countryCodes` 限定国家范围
@@ -169,7 +190,7 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
    - 如果用户只需要少数公司，不要为所有公司获取详情
 
 ## 注意事项
-- 人物搜索用 hid，公司搜索用 pid，注意区分
+- 人物搜索用 hids，公司搜索用 pids，注意区分
 - 所有时间戳均为毫秒级
 - 国家代码使用ISO 3166-1 alpha-2格式（例如：CN、US、JP）
 - 文件路径在所有平台上都使用正斜杠
@@ -177,3 +198,4 @@ python scripts/company_list_search.py --task_id 'task-id-here' --query_count 200
 - 搜索数量会影响接口的响应时间，建议设置 timeout:120
 - **禁止输出技术参数格式**：不要在回复中展示代码样式的参数，应将其转换为自然语言
 - **不要**估算、猜测每次调用的费用，如有需要，使用`auth.py --account_info` 获取余额
+- **不要**猜测参数名称，从文档中获取准确的参数名称和格式

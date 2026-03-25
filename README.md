@@ -76,11 +76,19 @@ pip install -r requirements.txt
 export UPKUAJING_API_KEY=your_api_key_here
 ```
 
-**Method 2: Using .env File**
+**Method 2: Using Shared .env File (Recommended)**
 ```bash
-cp .env.example .env
-# Edit .env file and fill in your API key
+# Create configuration directory
+mkdir -p ~/.upkuajing
+
+# Create .env file and add API key
+echo "UPKUAJING_API_KEY=your_api_key_here" > ~/.upkuajing/.env
+
+# Set file permissions (read/write for current user only)
+chmod 600 ~/.upkuajing/.env
 ```
+
+*Note: With shared configuration, all upkuajing series skills can use the same API key.*
 
 ### 3. Apply for API Key
 
@@ -125,14 +133,14 @@ python scripts/human_list_search.py \
   --params '{"companyNames": ["XXXX"], "titleRoles": ["CTO"]}' \
   --query_count 20
 
-# Get company details
-python scripts/company_details.py --pid [Company ID]
+# Get company details (supports multiple IDs, space-separated, max 20)
+python scripts/company_details.py --pids [Company ID1 Company ID2 ...]
 
-# Get personnel details
-python scripts/human_details.py --hid [Person ID]
+# Get personnel details (supports multiple IDs, space-separated, max 20)
+python scripts/human_details.py --hids [Person ID1 Person ID2 ...]
 
-# Get contact information
-python scripts/get_contact.py --bus_id [Company or Person ID] --bus_type 1
+# Get contact information (supports multiple IDs, space-separated, max 20)
+python scripts/get_contact.py --bus_ids [Company or Person ID1 Company or Person ID2 ...] --bus_type 1
 ```
 
 ## Usage Examples
@@ -155,11 +163,11 @@ python scripts/company_list_search.py \
   --params '{"companyNames": ["Target Corp"]}' \
   --query_count 10
 
-# Get details
-python scripts/company_details.py --pid [Company ID]
+# Get details (batch query multiple companies)
+python scripts/company_details.py --pids [Company ID1 Company ID2 ...]
 
-# Get contact information
-python scripts/get_contact.py --bus_id [Company ID] --bus_type 1
+# Get contact information (batch query multiple companies)
+python scripts/get_contact.py --bus_ids [Company ID1 Company ID2 ...] --bus_type 1
 ```
 
 ### Scenario 3: Talent Recruitment
