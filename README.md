@@ -190,7 +190,7 @@ For detailed API parameter descriptions, please refer to the documentation in th
 
 ## Pricing
 
-All API calls incur fees. For latest pricing, please visit: https://www.upkuajing.com/openapi/pricing
+All API calls incur fees. For latest pricing, please visit: https://www.upkuajing.com/web/openapi/price.html
 
 **Reference Prices:**
 - Company list search: 0.5 CNY/request (max 20 records per request)
