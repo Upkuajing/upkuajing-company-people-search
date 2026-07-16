@@ -23,7 +23,7 @@ def get_contact(bus_ids: list, bus_type: int) -> dict:
         'bus_ids': bus_ids,
         'bus_type': bus_type
     }
-    response = make_request('/search/contact/batch', params)
+    response = make_request('/agent/search/contact/batch', params)
     return response
 
 

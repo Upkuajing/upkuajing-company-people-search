@@ -18,7 +18,7 @@ def get_company_details(pids:list) -> dict:
     Returns:
         包含公司详情的API响应
     """
-    response = make_request('/search/company/info/batch', {'pids': pids})
+    response = make_request('/agent/search/company/info/batch', {'pids': pids})
     return response
 
 

@@ -19,7 +19,7 @@ def get_human_details(hids) -> dict:
         包含人物详情的API响应
     """
     params = {'hids': hids}
-    response = make_request('/search/person/info/batch', params)
+    response = make_request('/agent/search/person/info/batch', params)
     return response
 
 
